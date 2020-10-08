@@ -1,8 +1,8 @@
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 1050;
-canvas.height = 875;
+canvas.width = 820;
+canvas.height = 800;
 document.body.appendChild(canvas);
 
 // Background image
@@ -21,7 +21,7 @@ var gameArea = {
 	height: 425,
 }
 
-// Position the cannon of the Jonas Sark
+// Position the cannon of the Jonas Salk
 var jonasReady = false;
 var jonasImage = new Image();
 jonasImage.onload = function () {
@@ -47,8 +47,8 @@ sarsImage.src = "images/sars.png";
 
 // Game objects
 var jonas = {
-	x: 150,
-	y: 515
+	x: 555,
+	y: 475
 }
 
 var rna = {
@@ -58,8 +58,8 @@ var rna = {
 var sars = {
 	speed: 128, // movement in pixels per second
 	count: 5,	// number of SARS Spikes on screen
-	XlaunchSites: [200,260,300,325,330],
-	YlaunchSites: [300,275,250,190,125]
+	XlaunchSites: [145,170,170,145,99],
+	YlaunchSites: [200,250,300,350,400]
 };
 
 var sarsDestroyed = 0;
@@ -84,7 +84,9 @@ var reset = function () {
 	var sarsLaunch = Math.floor((Math.random() * sars.count))
 	sars.x = sars.XlaunchSites[sarsLaunch];
 	sars.y = sars.YlaunchSites[sarsLaunch];
-
+	console.log("Spike position: location", sarsLaunch+1, " ", sars.x, ",", sars.y);
+	console.log("RNA position: ", rna.x, ",", rna.y);
+	console.log("Jonas Salk position: ", jonas.x, ",", jonas.y);
 };
 
 // Update game objects
@@ -104,12 +106,13 @@ var update = function (modifier) {
 
 	// Are they touching?
 	if (
-		rna.x <= (sars.x + 9)
-		&& sars.x <= (rna.x + 9)
-		&& rna.y <= (sars.y + 9)
-		&& sars.y <= (rna.y + 9)
+		rna.x <= (sars.x + 25)
+		&& sars.x <= (rna.x + 25)
+		&& rna.y <= (sars.y + 25)
+		&& sars.y <= (rna.y + 25)
 	) {
 		sarsDestroyed++;
+		console.log("SARS Destroyed! Current score: ", sarsDestroyed );
 		reset();
 	}
 };
