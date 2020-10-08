@@ -21,6 +21,11 @@ var gameArea = {
 	height: 425,
 }
 
+var score = {
+	value: 0,
+	multiplier: 50,
+}
+
 // Position the cannon of the Jonas Salk
 var jonasReady = false;
 var jonasImage = new Image();
@@ -104,6 +109,7 @@ var update = function (modifier) {
 		&& sars.y <= (rna.y + 25)
 	) {
 		sarsDestroyed++;
+		score.value += score.multiplier;
 		console.log("SARS Destroyed! Current score: ", sarsDestroyed );
 		reset();
 	}
@@ -139,6 +145,8 @@ var render = function () {
 	ctx.textAlign = "right";
 	ctx.fillText("Lives saved: ", 750, 675);
 	ctx.fillText("Lives lost:  ", 730, 700);
+	ctx.fillText(score.value, 795, 675);
+	ctx.fillText("0", 795, 700);
 
 };
 
