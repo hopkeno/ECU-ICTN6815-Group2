@@ -53,7 +53,9 @@ var jonas = {
 
 var rna = {
 	speed: 256, // movement in pixels per second
-	count: 5    // number or RNA particles allowed
+	count: 5,    // number or RNA particles allowed
+	targetX: null,
+	targetY: null
 };
 var sars = {
 	speed: 128, // movement in pixels per second
@@ -66,18 +68,16 @@ var sarsDestroyed = 0;
 // Handle keyboard controls
 var keysDown = {};
 
-addEventListener("keydown", function (e) {
-	keysDown[e.keyCode] = true;
-}, false);
-
-addEventListener("keyup", function (e) {
-	delete keysDown[e.keyCode];
+addEventListener("click", function (e) {
+	console.log("Shot fired towards: ", e.clientX, e.clientY);
+	rna.targetX = e.clientX;
+	rna.targetY = e.clientY;
 }, false);
 
 // Reset the game when the player destroys a sars
 var reset = function () {
-	rna.x = 200;
-	rna.y = 500;
+	rna.targetX = rna.x = jonas.x - 3;
+	rna.targetY = rna.y = jonas.y - 10;
 
 	// Throw the sars somewhere on the screen randomly
 	// Select a random launch site
@@ -86,23 +86,15 @@ var reset = function () {
 	sars.y = sars.YlaunchSites[sarsLaunch];
 	console.log("Spike position: location", sarsLaunch+1, " ", sars.x, ",", sars.y);
 	console.log("RNA position: ", rna.x, ",", rna.y);
+	console.log("RNA target: ", rna.targetX, ",", rna.targetY);
 	console.log("Jonas Salk position: ", jonas.x, ",", jonas.y);
 };
 
 // Update game objects
 var update = function (modifier) {
-	if (38 in keysDown) { // Player holding up
-		rna.y -= rna.speed * modifier;
-	}
-	if (40 in keysDown) { // Player holding down
-		rna.y += rna.speed * modifier;
-	}
-	if (37 in keysDown) { // Player holding left
-		rna.x -= rna.speed * modifier;
-	}
-	if (39 in keysDown) { // Player holding right
-		rna.x += rna.speed * modifier;
-	}
+	rna.x = rna.targetX;
+	rna.y = rna.targetY;
+//	console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
 
 	// Are they touching?
 	if (
@@ -135,11 +127,19 @@ var render = function () {
 		ctx.drawImage(jonasImage, jonas.x, jonas.y);
 	}
 
+	// Title
+	ctx.fillStyle = "rgb(255, 255, 255)";
+	ctx.font = "72px Helvetica";
+	ctx.textAlign = "left";
+	ctx.fillText("BioBattle", 50, 700);
+
 	// Score
 	ctx.fillStyle = "rgb(255, 255, 255)";
-	ctx.font = "16px Helvetica";
-	ctx.textAlign = "left";
-	ctx.fillText("Lives saved: " + sarsDestroyed, 50, 675);
+	ctx.font = "24px Helvetica";
+	ctx.textAlign = "right";
+	ctx.fillText("Lives saved: ", 750, 675);
+	ctx.fillText("Lives lost:  ", 730, 700);
+
 };
 
 // The main game loop
