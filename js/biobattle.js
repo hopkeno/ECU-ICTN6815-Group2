@@ -13,6 +13,14 @@ bgImage.onload = function () {
 };
 bgImage.src = "images/background.png";
 
+// Background Earth Strike image
+var strikeReady = false;
+var strikeImage = new Image();
+strikeImage.onload = function () {
+	strikeReady = true;
+};
+strikeImage.src = "images/strike.png";
+
 // Prep the rectangular game area
 var gameArea = {
 	x: 100,
@@ -22,8 +30,12 @@ var gameArea = {
 }
 
 var score = {
-	value: 0,
 	multiplier: 50,
+	level: 1,
+	value: 0,
+	sarsDelivered: 0,
+	sars: 0,
+	gameover: false,
 }
 
 // Position the cannon of the Jonas Salk
@@ -48,7 +60,7 @@ var sarsImage = new Image();
 sarsImage.onload = function () {
 	sarsReady = true;
 };
-sarsImage.src = "images/sars.png";
+sarsImage.src = "images/corona.png";
 
 // Game objects
 var jonas = {
@@ -63,7 +75,7 @@ var rna = {
 	targetY: null
 };
 var sars = {
-	speed: 128, // movement in pixels per second
+	speed: 2, // movement in pixels per second
 	count: 5,	// number of SARS Spikes on screen
 	XlaunchSites: [145,170,170,145,99],
 	YlaunchSites: [200,250,300,350,400]
@@ -75,14 +87,27 @@ var keysDown = {};
 
 addEventListener("click", function (e) {
 	console.log("Shot fired towards: ", e.clientX, e.clientY);
-	rna.targetX = e.clientX;
-	rna.targetY = e.clientY;
+	// the - 21 is an adjustment to move the image to the middle of the crosshairs
+	// otherwise the top left corner of the image is placed at the bottom right corner of the crosshair
+	rna.targetX = e.clientX - 21;
+	rna.targetY = e.clientY - 21;
+	// keep the cursor target on the battleground
+	if (rna.targetX < 100) {
+		rna.targetX = 100;
+	} else if (rna.targetX > 735) {
+		rna.targetX = 735;
+	}
+	if (rna.targetY < 60) {
+		rna.targetY = 60;
+	} else if (rna.targetY > 475) {
+		rna.targetY = jonas.y - 13;
+	}
 }, false);
 
 // Reset the game when the player destroys a sars
 var reset = function () {
-	rna.targetX = rna.x = jonas.x - 3;
-	rna.targetY = rna.y = jonas.y - 10;
+	rna.targetX = rna.x = jonas.x;
+	rna.targetY = rna.y = jonas.y - 13;
 
 	// Throw the sars somewhere on the screen randomly
 	// Select a random launch site
@@ -99,6 +124,8 @@ var reset = function () {
 var update = function (modifier) {
 	rna.x = rna.targetX;
 	rna.y = rna.targetY;
+	sars.x += sars.speed;
+
 //	console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
 
 	// Are they touching?
@@ -109,44 +136,94 @@ var update = function (modifier) {
 		&& sars.y <= (rna.y + 25)
 	) {
 		sarsDestroyed++;
+		if (sarsDestroyed % 5 == 0) {
+			score.level++;
+			sars.speed+=2;
+		}
 		score.value += score.multiplier;
 		console.log("SARS Destroyed! Current score: ", sarsDestroyed );
 		reset();
+	} else if (sars.x >= 645) {
+			strikeReady = true;
+			score.sarsDelivered++;
+			score.sars += score.multiplier;
+			console.log("SARS Spike has hit the Earth! Current Spike count: ", score.sarsDelivered);
+			if (score.sarsDelivered > 40) {
+				score.gameover = true;
+				//Keep the stats the same but flash the earth
+				score.sars = 2020;
+				score.sarsDelivered = 41;
+				sars.speed = 75;
+			}
+			reset();
 	}
 };
 
 // Draw everything
 var render = function () {
-	if (bgReady) {
+	if (strikeReady) {
+		ctx.drawImage(strikeImage, 0, 0);
+		strikeReady = false;
+	} else if (bgReady) {
 		ctx.drawImage(bgImage, 0, 0);
 	}
-
-	if (rnaReady) {
-		ctx.drawImage(rnaImage, rna.x, rna.y);
-	}
-
-	if (sarsReady) {
-		ctx.drawImage(sarsImage, sars.x, sars.y);
-	}
-
 	if (jonasReady) {
 		ctx.drawImage(jonasImage, jonas.x, jonas.y);
 	}
+	if (score.gameover) {
+		ctx.font = "92px Impact";
+		ctx.textAlign = "left";
+		ctx.fillText("GAME OVER", 210, 325)
+	} else {
+		if (rnaReady) {
+			ctx.drawImage(rnaImage, rna.x, rna.y);
+		}
+
+		if (sarsReady) {
+			ctx.drawImage(sarsImage, sars.x, sars.y);
+		}
+	}
 
 	// Title
-	ctx.fillStyle = "rgb(255, 255, 255)";
-	ctx.font = "72px Helvetica";
+//	ctx.fillStyle = "red";
+	var my_gradient = ctx.createLinearGradient(50, 700, 350, 700);
+	my_gradient.addColorStop(0, "red");
+	my_gradient.addColorStop(1, "#d0fa0d");
+	ctx.fillStyle = my_gradient;
+
+	// Title
+	ctx.font = "92px Impact";
 	ctx.textAlign = "left";
 	ctx.fillText("BioBattle", 50, 700);
 
-	// Score
-	ctx.fillStyle = "rgb(255, 255, 255)";
-	ctx.font = "24px Helvetica";
+	// Text properties
+	ctx.fillStyle = "white";
+	ctx.font = "16px Arial Black";
+
+	// Level Indicator
+	ctx.textAlign = "left";
+	ctx.fillText("Level ", 175, 725);
+	ctx.fillText(score.level, 225, 725);
+
+	// Scoreboard
+	ctx.beginPath();
+	ctx.textAlign = "left";
+	ctx.fillText("Spikes Destroyed:", 475, 625);
+	ctx.fillText("Lives saved:", 475, 650);
+	ctx.strokeStyle = "white";
+	ctx.lineWidth = 5;
+	ctx.moveTo(475, 670);
+	ctx.lineTo(720, 670);
+	ctx.fillText("Spikes Delivered:", 475, 700);
+	ctx.fillText("Lives lost:", 475, 725);
 	ctx.textAlign = "right";
-	ctx.fillText("Lives saved: ", 750, 675);
-	ctx.fillText("Lives lost:  ", 730, 700);
-	ctx.fillText(score.value, 795, 675);
-	ctx.fillText("0", 795, 700);
+	ctx.fillStyle = "#d0fa0d";
+	ctx.fillText(sarsDestroyed, 720, 625);
+	ctx.fillText(score.value, 720, 650);
+	ctx.fillStyle = "red";
+	ctx.fillText(score.sarsDelivered, 720, 700);
+	ctx.fillText(score.sars, 720, 725);
+	ctx.stroke();
 
 };
 
@@ -154,6 +231,7 @@ var render = function () {
 var main = function () {
 	var now = Date.now();
 	var delta = now - then;
+	strikeReady = false;
 
 	update(delta / 1000);
 	render();
