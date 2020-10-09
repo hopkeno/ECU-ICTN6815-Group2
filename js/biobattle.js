@@ -79,7 +79,9 @@ var sars = {
 	speed: 2, // movement in pixels per second
 	count: 5,	// number of SARS Spikes on screen
 	XlaunchSites: [145,170,170,145,99],
-	YlaunchSites: [200,250,300,350,400]
+	YlaunchSites: [200,250,300,350,400],
+	XtargetSites: [645,645,645,645,645],
+	YtargetSites: [200,250,300,350,400],
 };
 
 var sarsDestroyed = 0;
@@ -112,10 +114,14 @@ var reset = function () {
 
 	// Throw the sars somewhere on the screen randomly
 	// Select a random launch site
-	var sarsLaunch = Math.floor((Math.random() * sars.count))
+	var sarsLaunch = Math.floor((Math.random() * sars.count));
 	sars.x = sars.XlaunchSites[sarsLaunch];
 	sars.y = sars.YlaunchSites[sarsLaunch];
+	var sarsTarget = Math.floor((Math.random() * sars.count));
+	sars.Xtarget = sars.XtargetSites[sarsTarget];
+	sars.Ytarget = sars.YtargetSites[sarsTarget];
 	console.log("Spike position: location", sarsLaunch+1, " ", sars.x, ",", sars.y);
+	console.log("Spike Target: location", sarsTarget+1, " ", sars.Xtarget, ",", sars.Ytarget);
 	console.log("RNA position: ", rna.x, ",", rna.y);
 	console.log("RNA target: ", rna.targetX, ",", rna.targetY);
 	console.log("Jonas Salk position: ", jonas.x, ",", jonas.y);
@@ -126,7 +132,7 @@ var update = function (modifier) {
 	rna.x = rna.targetX;
 	rna.y = rna.targetY;
 	sars.x += sars.speed;
-
+	
 //	console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
 
 	// Are they touching?
