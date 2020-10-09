@@ -15,6 +15,7 @@ bgImage.src = "images/background.png";
 
 // Background Earth Strike image
 var strikeReady = false;
+var strikeActive = false;
 var strikeImage = new Image();
 strikeImage.onload = function () {
 	strikeReady = true;
@@ -144,7 +145,7 @@ var update = function (modifier) {
 		console.log("SARS Destroyed! Current score: ", sarsDestroyed );
 		reset();
 	} else if (sars.x >= 645) {
-			strikeReady = true;
+			strikeActive = true;
 			score.sarsDelivered++;
 			score.sars += score.multiplier;
 			console.log("SARS Spike has hit the Earth! Current Spike count: ", score.sarsDelivered);
@@ -161,9 +162,9 @@ var update = function (modifier) {
 
 // Draw everything
 var render = function () {
-	if (strikeReady) {
+	if (strikeReady && strikeActive) {
 		ctx.drawImage(strikeImage, 0, 0);
-		strikeReady = false;
+		strikeActive = false;
 	} else if (bgReady) {
 		ctx.drawImage(bgImage, 0, 0);
 	}
@@ -175,11 +176,8 @@ var render = function () {
 		ctx.textAlign = "left";
 		ctx.fillText("GAME OVER", 210, 325)
 	} else {
-		if (rnaReady) {
+		if (rnaReady && sarsReady) {
 			ctx.drawImage(rnaImage, rna.x, rna.y);
-		}
-
-		if (sarsReady) {
 			ctx.drawImage(sarsImage, sars.x, sars.y);
 		}
 	}
@@ -231,7 +229,6 @@ var render = function () {
 var main = function () {
 	var now = Date.now();
 	var delta = now - then;
-	strikeReady = false;
 
 	update(delta / 1000);
 	render();
