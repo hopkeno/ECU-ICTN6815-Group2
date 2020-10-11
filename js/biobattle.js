@@ -1,3 +1,7 @@
+var debug = {
+	level: "warn",
+};
+
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
@@ -113,27 +117,27 @@ var sarsDestroyed = 0;
 var keysDown = {};
 
 addEventListener("keypress", function(e) {
-//	console.log("keypress: ", e.key);
+	if (debug.level == "verbose") console.log("keypress: ", e.key);
 	if (e.key == " ") {
 		if (score.gameover == true) {
 			newGame();
 		} else {
 			if (score.paused == true) {
-				console.log("Resuming action");
+				if (debug.level == "info") console.log("Resuming action");
 				score.paused = false;
 			} else {
-				console.log("Game Paused. ", e.which);
+				if (debug.level == "info") console.log("Game Paused. ", e.which);
 				score.paused = true;
 			}
 		}
 	}
 	if (e.key == "t") {
 		cheats.targetIndicators = !cheats.targetIndicators;
-		console.log("cheats.targetIndicators: ", cheats.targetIndicators);
+		if (debug.level == "info") console.log("cheats.targetIndicators: ", cheats.targetIndicators);
 	}
 	if (e.key == "T") {
 		cheats.sarsTargetIndicator = !cheats.sarsTargetIndicator;
-		console.log("cheats.sarsTargetIndicator: ", cheats.sarsTargetIndicator);
+		if (debug.level == "info") console.log("cheats.sarsTargetIndicator: ", cheats.sarsTargetIndicator);
 	}
 	if (e.key == "s") {
 		sars.speed++;
@@ -144,16 +148,16 @@ addEventListener("keypress", function(e) {
 	}
 	if (e.key == "h") {
 		cheats.hud = !cheats.hud;
-		console.log("cheats.hud: ", cheats.hud);
+		if (debug.level == "info") console.log("cheats.hud: ", cheats.hud);
 	}
 	if (e.key == "?") {
 		cheats.menu = !cheats.menu;
-		console.log("cheats.menu: ", cheats.menu);
+		if (debug.level == "info") console.log("cheats.menu: ", cheats.menu);
 	}
 }, false);
 
 addEventListener("click", function (e) {
-	console.log("Shot fired towards: ", e.clientX, e.clientY);
+	if (debug.level == "info") console.log("Shot fired towards: ", e.clientX, e.clientY);
 	// the - 21 is an adjustment to move the image to the middle of the crosshairs
 	// otherwise the top left corner of the image is placed at the bottom right corner of the crosshair
 	rna.targetX = e.clientX - 21;
@@ -184,12 +188,14 @@ var reset = function () {
 	var sarsTarget = Math.floor((Math.random() * sars.count));
 	sars.Xtarget = sars.XtargetSites[sarsTarget];
 	sars.Ytarget = sars.YtargetSites[sarsTarget];
-	console.log("Spike position: location", sarsLaunch+1, " ", sars.x, ",", sars.y);
-	console.log("Spike Target: location", sarsTarget+1, " ", sars.Xtarget, ",", sars.Ytarget);
-	console.log("RNA position: ", rna.x, ",", rna.y);
-	console.log("RNA target: ", rna.targetX, ",", rna.targetY);
-	console.log("Jonas Salk position: ", jonas.x, ",", jonas.y);
-	console.log("Distance between SARS Spike and Earth: ", 	sarsTrajectory({x: sars.x,y: sars.y},{x: sars.Xtarget, y: sars.Ytarget}));
+	if (debug.level == "info") {
+		console.log("Spike position: location", sarsLaunch+1, " ", sars.x, ",", sars.y);
+		console.log("Spike Target: location", sarsTarget+1, " ", sars.Xtarget, ",", sars.Ytarget);
+		console.log("RNA position: ", rna.x, ",", rna.y);
+		console.log("RNA target: ", rna.targetX, ",", rna.targetY);
+		console.log("Jonas Salk position: ", jonas.x, ",", jonas.y);
+	}
+	if (debug.level == "verbose") console.log("Distance between SARS Spike and Earth: ", 	sarsTrajectory({x: sars.x,y: sars.y},{x: sars.Xtarget, y: sars.Ytarget}));
 };
 
 // Update game objects
@@ -199,8 +205,9 @@ var update = function (modifier) {
 		rna.y = rna.targetY;
 		sars.x += sars.speed;
 		sars.pps = 2/modifier;
-	//	console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
 
+		if (debug.level == "verbose") console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
+		if (debug.level == "verbose") console.log("SARS position: ", sars.x, ",", sars.y, "; Trajectory: ", sars.Xtarget, ",", sars.Ytarget);
 		// Are they touching?
 		if (
 			rna.x <= (sars.x + 25)
@@ -215,13 +222,13 @@ var update = function (modifier) {
 				levelUp(score.level);
 			}
 			score.value += score.multiplier;
-			console.log("SARS Destroyed! Current score: ", sarsDestroyed );
+			if (debug.level == "info") console.log("SARS Destroyed! Current score: ", sarsDestroyed );
 			reset();
 		} else if (sars.x >= 645) {
 				strikeActive = true;
 				score.sarsDelivered++;
 				score.sars += sarsMultiplier;
-				console.log("SARS Spike has hit the Earth! Current Spike count: ", score.sarsDelivered);
+				if (debug.level == "info") console.log("SARS Spike has hit the Earth! Current Spike count: ", score.sarsDelivered);
 				if (score.sarsDelivered > sars.limit) {
 					score.gameover = true;
 					//Keep the stats the same but flash the earth
@@ -273,14 +280,16 @@ var render = function () {
 		ctx.font = "14px Arial Black";
 		ctx.fillStyle = "white";
 		ctx.textAlign = "center";
-		ctx.fillText("Cheat/Shortcut Menu", 410, 275);
-		ctx.fillText("-----------------------------", 410, 285);
-		ctx.fillText("h - Toggle HUD (Heads Up Display)", 410, 300);
-		ctx.fillText("T - Toggle SARS Spike Target Indicator", 410, 315);
-		ctx.fillText("t - Toggle all potential SARS Spike Target Indicators", 410, 330);
-		ctx.fillText("s - Increase SARS speed", 410, 345);
-		ctx.fillText("S - Decrease SARS speed", 410, 360);
-		ctx.fillText("? - Toggle cheat menu", 410, 375);
+		var start = 225;
+		ctx.fillText("Cheat/Shortcut Menu", 410, start);
+		ctx.fillText("--------------------------------------", 410, start+=15);
+		ctx.fillText("space - Pause/Resume game", 410,start+=15);
+		ctx.fillText("h - Toggle HUD (Heads Up Display)", 410, start+=15);
+		ctx.fillText("T - Toggle SARS Spike Target Indicator", 410, start+=15);
+		ctx.fillText("t - Toggle all potential SARS Spike Target Indicators", 410, start+=15);
+		ctx.fillText("s - Increase SARS speed", 410, start+=15);
+		ctx.fillText("S - Decrease SARS speed", 410, start+=15);
+		ctx.fillText("? - Toggle cheat menu", 410, start+=15);
 	}
 
 	if (cheats.hud) {
