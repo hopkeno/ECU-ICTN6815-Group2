@@ -93,11 +93,13 @@ var rna = {
 var sars = {
 	speed: 2, // movement in pixels per second
 	count: 5,	// number of SARS Spikes on screen
+	limit: 10,	// number of SARS Spikes that can hit earth
 	XlaunchSites: [145,170,170,145,99],
 	YlaunchSites: [200,250,300,350,400],
 	XtargetSites: [645,645,645,645,645],
 	YtargetSites: [200,250,300,350,400],
 };
+var sarsMultiplier =  Math.floor(2020 / (sars.limit+1));
 
 var sarsDestroyed = 0;
 // Handle keyboard controls
@@ -186,20 +188,26 @@ var update = function (modifier) {
 		} else if (sars.x >= 645) {
 				strikeActive = true;
 				score.sarsDelivered++;
-				score.sars += score.multiplier;
+				score.sars += sarsMultiplier;
 				console.log("SARS Spike has hit the Earth! Current Spike count: ", score.sarsDelivered);
-				if (score.sarsDelivered > 40) {
+				if (score.sarsDelivered > sars.limit) {
 					score.gameover = true;
 					//Keep the stats the same but flash the earth
 					score.sars = 2020;
-					score.sarsDelivered = 41;
+					score.sarsDelivered = sars.limit + 1;
 					sars.speed = 75;
 				}
 				reset();
 		}
 	}
 };
-
+const delay = ms => new Promise(res => setTimeout(res, ms));
+var levelUp = async function (level) {
+	ctx.font = "92px Impact";
+	ctx.textAlign = "left";
+	ctx.fillText("LEVEL " + level, 210, 325);
+	await delay(3000);
+}
 // Draw everything
 var render = function () {
 	if (strikeReady && strikeActive) {
