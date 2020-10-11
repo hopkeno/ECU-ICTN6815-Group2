@@ -204,10 +204,10 @@ var update = function (modifier) {
 		rna.x = rna.targetX;
 		rna.y = rna.targetY;
 		sars.x += sars.speed;
-		sars.pps = 2/modifier;
-
+		sars.pps = sars.speed/modifier;
 		if (debug.level == "verbose") console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
 		if (debug.level == "verbose") console.log("SARS position: ", sars.x, ",", sars.y, "; Trajectory: ", sars.Xtarget, ",", sars.Ytarget);
+		sars.y += (sars.Ytarget-sars.y)/(sars.Xtarget-sars.x);
 		// Are they touching?
 		if (
 			rna.x <= (sars.x + 25)
