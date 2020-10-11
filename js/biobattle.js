@@ -56,6 +56,7 @@ var newGame = function () {
 
 var cheats = {
 	targetIndicator: false,
+	hud: false,
 }
 
 // Position the cannon of the Jonas Salk
@@ -102,6 +103,7 @@ var sars = {
 	YlaunchSites: [200,250,300,350,400],
 	XtargetSites: [645,645,645,645,645],
 	YtargetSites: [200,250,300,350,400],
+	pps: 0,
 };
 var sarsMultiplier =  Math.floor(2020 / (sars.limit+1));
 
@@ -110,7 +112,7 @@ var sarsDestroyed = 0;
 var keysDown = {};
 
 addEventListener("keypress", function(e) {
-	console.log("keypress: ", e.key);
+//	console.log("keypress: ", e.key);
 	if (e.key == " ") {
 		if (score.gameover == true) {
 			newGame();
@@ -134,6 +136,10 @@ addEventListener("keypress", function(e) {
 		if (sars.speed > 0) {
 			sars.speed--;
 		}
+	}
+	if (e.key == "h") {
+		cheats.hud = !cheats.hud;
+		console.log("cheats.hud: ", cheats.hud);
 	}
 }, false);
 
@@ -174,6 +180,7 @@ var reset = function () {
 	console.log("RNA position: ", rna.x, ",", rna.y);
 	console.log("RNA target: ", rna.targetX, ",", rna.targetY);
 	console.log("Jonas Salk position: ", jonas.x, ",", jonas.y);
+	console.log("Distance between SARS Spike and Earth: ", 	sarsTrajectory({x: sars.x,y: sars.y},{x: sars.Xtarget, y: sars.Ytarget}));
 };
 
 // Update game objects
@@ -182,7 +189,7 @@ var update = function (modifier) {
 		rna.x = rna.targetX;
 		rna.y = rna.targetY;
 		sars.x += sars.speed;
-		
+		sars.pps = 2/modifier;
 	//	console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
 
 		// Are they touching?
@@ -253,6 +260,15 @@ var render = function () {
 			ctx.drawImage(sarsImage, sars.x, sars.y);
 		}
 	}
+	if (cheats.hud) {
+		ctx.font = "14px Arial Black";
+		ctx.fillStyle = "white";
+		ctx.textAlign = "center";
+		var distance = sarsTrajectory({x: sars.x,y: sars.y},{x: sars.Xtarget, y: sars.Ytarget});
+		ctx.fillText("SARS Spike Speed: " + sars.pps.toFixed(2) + " pps", 410, 75);
+		ctx.fillText("Distance to Impact: " + distance.toFixed(2) + " pixels", 410, 90);
+		ctx.fillText("Time to Impact: " + (distance/sars.pps).toFixed(1) + " seconds", 410, 105);
+	}
 
 	// Target Indicator
 	if ( cheats.targetIndicator == true ) {
@@ -303,6 +319,14 @@ var render = function () {
 	ctx.fillText(score.sars, 720, 725);
 	ctx.stroke();
 
+};
+
+var sarsTrajectory = function(start,end) {
+	var xdistance = (end.x - start.x);
+	var ydistance = (end.y - start.y);
+	// use pythagoras theorem to work out the magnitude of the vector
+	var magnitude = Math.sqrt(xdistance * xdistance + ydistance * ydistance);
+	return magnitude;
 };
 
 // The main game loop
