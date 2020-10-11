@@ -36,7 +36,22 @@ var score = {
 	value: 0,
 	sarsDelivered: 0,
 	sars: 0,
+	paused: false,
 	gameover: false,
+}
+
+var newGame = function () {
+	score.level = 1;
+	score.value = 0;
+	score.sarsDelivered = 0;
+	score.sars = 0;
+	score.paused = false;
+	score.gameover = false;
+	sars.speed = 2;
+	sarsDestroyed = 0;
+	sars.x = 0;
+	sars.y = 0;
+	reset();
 }
 
 // Position the cannon of the Jonas Salk
@@ -88,6 +103,22 @@ var sarsDestroyed = 0;
 // Handle keyboard controls
 var keysDown = {};
 
+addEventListener("keypress", function(e) {
+	if (e.which == 32) {
+		if (score.gameover == true) {
+			newGame();
+		} else {
+			if (score.paused == true) {
+				console.log("Resuming action");
+				score.paused = false;
+			} else {
+				console.log("Game Paused. ", e.which);
+				score.paused = true;
+			}
+		}
+	}
+}, false);
+
 addEventListener("click", function (e) {
 	console.log("Shot fired towards: ", e.clientX, e.clientY);
 	// the - 21 is an adjustment to move the image to the middle of the crosshairs
@@ -129,40 +160,43 @@ var reset = function () {
 
 // Update game objects
 var update = function (modifier) {
-	rna.x = rna.targetX;
-	rna.y = rna.targetY;
-	sars.x += sars.speed;
-	
-//	console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
+	if (score.paused == false) {
+		rna.x = rna.targetX;
+		rna.y = rna.targetY;
+		sars.x += sars.speed;
+		
+	//	console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
 
-	// Are they touching?
-	if (
-		rna.x <= (sars.x + 25)
-		&& sars.x <= (rna.x + 25)
-		&& rna.y <= (sars.y + 25)
-		&& sars.y <= (rna.y + 25)
-	) {
-		sarsDestroyed++;
-		if (sarsDestroyed % 5 == 0) {
-			score.level++;
-			sars.speed+=2;
-		}
-		score.value += score.multiplier;
-		console.log("SARS Destroyed! Current score: ", sarsDestroyed );
-		reset();
-	} else if (sars.x >= 645) {
-			strikeActive = true;
-			score.sarsDelivered++;
-			score.sars += score.multiplier;
-			console.log("SARS Spike has hit the Earth! Current Spike count: ", score.sarsDelivered);
-			if (score.sarsDelivered > 40) {
-				score.gameover = true;
-				//Keep the stats the same but flash the earth
-				score.sars = 2020;
-				score.sarsDelivered = 41;
-				sars.speed = 75;
+		// Are they touching?
+		if (
+			rna.x <= (sars.x + 25)
+			&& sars.x <= (rna.x + 25)
+			&& rna.y <= (sars.y + 25)
+			&& sars.y <= (rna.y + 25)
+		) {
+			sarsDestroyed++;
+			if (sarsDestroyed % 5 == 0) {
+				score.level++;
+				sars.speed+=2;
+				levelUp(score.level);
 			}
+			score.value += score.multiplier;
+			console.log("SARS Destroyed! Current score: ", sarsDestroyed );
 			reset();
+		} else if (sars.x >= 645) {
+				strikeActive = true;
+				score.sarsDelivered++;
+				score.sars += score.multiplier;
+				console.log("SARS Spike has hit the Earth! Current Spike count: ", score.sarsDelivered);
+				if (score.sarsDelivered > 40) {
+					score.gameover = true;
+					//Keep the stats the same but flash the earth
+					score.sars = 2020;
+					score.sarsDelivered = 41;
+					sars.speed = 75;
+				}
+				reset();
+		}
 	}
 };
 
@@ -181,8 +215,16 @@ var render = function () {
 		ctx.font = "92px Impact";
 		ctx.textAlign = "left";
 		ctx.fillText("GAME OVER", 210, 325)
+		ctx.font = "16px Impact";
+		ctx.fillText("Press spacebar for new game", 330, 350);
 	} else {
-		if (rnaReady && sarsReady) {
+		if (score.paused) {
+			ctx.font = "92px Impact";
+			ctx.textAlign = "left";
+			ctx.fillText("PAUSED", 275, 325);	
+			ctx.font = "16px Impact";
+			ctx.fillText("Press spacebar to resume", 330, 350);
+		} else if (rnaReady && sarsReady) {
 			ctx.drawImage(rnaImage, rna.x, rna.y);
 			ctx.drawImage(sarsImage, sars.x, sars.y);
 		}
