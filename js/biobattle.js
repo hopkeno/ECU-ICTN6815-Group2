@@ -61,6 +61,7 @@ var newGame = function () {
 var cheats = {
 	targetIndicators: false,
 	sarsTargetIndicator: false,
+	originIndicators: false,
 	hud: false,
 }
 
@@ -106,8 +107,8 @@ var sars = {
 	limit: 10,	// number of SARS Spikes that can hit earth
 	XlaunchSites: [145,170,170,145,99],
 	YlaunchSites: [200,250,300,350,400],
-	XtargetSites: [645,645,645,645,645],
-	YtargetSites: [200,250,300,350,400],
+	XtargetSites: [700,655,645,655,700],
+	YtargetSites: [170,225,285,350,400],
 	pps: 0,
 };
 var sarsMultiplier =  Math.floor(2020 / (sars.limit+1));
@@ -139,6 +140,11 @@ addEventListener("keypress", function(e) {
 		cheats.sarsTargetIndicator = !cheats.sarsTargetIndicator;
 		if (debug.level == "info") console.log("cheats.sarsTargetIndicator: ", cheats.sarsTargetIndicator);
 	}
+	if (e.key == "o") {
+		cheats.originIndicators = !cheats.originIndicators;
+		if (debug.level == "info") console.log("cheats.originIndicators: ", cheats.originIndicators);
+	}
+
 	if (e.key == "s") {
 		sars.speed++;
 	} else if (e.key == "S") {
@@ -224,7 +230,7 @@ var update = function (modifier) {
 			score.value += score.multiplier;
 			if (debug.level == "info") console.log("SARS Destroyed! Current score: ", sarsDestroyed );
 			reset();
-		} else if (sars.x >= 645) {
+		} else if (sars.x >= sars.Xtarget - 25) {
 				strikeActive = true;
 				score.sarsDelivered++;
 				score.sars += sarsMultiplier;
@@ -287,6 +293,7 @@ var render = function () {
 		ctx.fillText("h - Toggle HUD (Heads Up Display)", 410, start+=15);
 		ctx.fillText("T - Toggle SARS Spike Target Indicator", 410, start+=15);
 		ctx.fillText("t - Toggle all potential SARS Spike Target Indicators", 410, start+=15);
+		ctx.fillText("o - Toggle SARS Spike Origin Indicators", 410, start+=15);
 		ctx.fillText("s - Increase SARS speed", 410, start+=15);
 		ctx.fillText("S - Decrease SARS speed", 410, start+=15);
 		ctx.fillText("? - Toggle cheat menu", 410, start+=15);
@@ -317,6 +324,17 @@ var render = function () {
 		ctx.font = "16px Arial Black";
 		ctx.fillText("X", sars.Xtarget, sars.Ytarget+13);			
 	}
+
+	// Origin Indicators
+	if ( cheats.originIndicators == true ) {
+		ctx.fillStyle = "white";
+		ctx.textAlign = "center";
+		ctx.font = "16px Arial Black";
+		for (let index = 0; index < (sars.XlaunchSites).length; index++) {
+			ctx.fillText("O", (sars.XlaunchSites)[index], (sars.YlaunchSites)[index]+13);			
+		}
+	}
+
 
 	// Title
 //	ctx.fillStyle = "red";
