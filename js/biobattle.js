@@ -54,6 +54,10 @@ var newGame = function () {
 	reset();
 }
 
+var cheats = {
+	targetIndicator: false,
+}
+
 // Position the cannon of the Jonas Salk
 var jonasReady = false;
 var jonasImage = new Image();
@@ -106,7 +110,8 @@ var sarsDestroyed = 0;
 var keysDown = {};
 
 addEventListener("keypress", function(e) {
-	if (e.which == 32) {
+	console.log("keypress: ", e.key);
+	if (e.key == " ") {
 		if (score.gameover == true) {
 			newGame();
 		} else {
@@ -117,6 +122,17 @@ addEventListener("keypress", function(e) {
 				console.log("Game Paused. ", e.which);
 				score.paused = true;
 			}
+		}
+	}
+	if (e.key == "t") {
+		cheats.targetIndicator = !cheats.targetIndicator;
+		console.log("cheats.targetIndicator: ", cheats.targetIndicator);
+	}
+	if (e.key == "s") {
+		sars.speed++;
+	} else if (e.key == "S") {
+		if (sars.speed > 0) {
+			sars.speed--;
 		}
 	}
 }, false);
@@ -236,6 +252,14 @@ var render = function () {
 			ctx.drawImage(rnaImage, rna.x, rna.y);
 			ctx.drawImage(sarsImage, sars.x, sars.y);
 		}
+	}
+
+	// Target Indicator
+	if ( cheats.targetIndicator == true ) {
+		ctx.fillStyle = "red";
+		ctx.textAlign = "center";
+		ctx.font = "16px Arial Black";
+		ctx.fillText("X", sars.Xtarget, sars.Ytarget+13);
 	}
 
 	// Title
