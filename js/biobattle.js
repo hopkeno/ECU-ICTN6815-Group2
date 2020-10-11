@@ -278,8 +278,8 @@ var render = function () {
 			ctx.font = "16px Impact";
 			ctx.fillText("Press spacebar to resume", 330, 350);
 		} else if (rnaReady && sarsReady) {
-			ctx.drawImage(rnaImage, rna.x, rna.y);
 			ctx.drawImage(sarsImage, sars.x, sars.y);
+			ctx.drawImage(rnaImage, rna.x, rna.y);
 		}
 	}
 	if (cheats.menu) {
