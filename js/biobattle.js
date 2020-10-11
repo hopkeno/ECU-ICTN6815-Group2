@@ -55,7 +55,8 @@ var newGame = function () {
 }
 
 var cheats = {
-	targetIndicator: false,
+	targetIndicators: false,
+	sarsTargetIndicator: false,
 	hud: false,
 }
 
@@ -127,8 +128,12 @@ addEventListener("keypress", function(e) {
 		}
 	}
 	if (e.key == "t") {
-		cheats.targetIndicator = !cheats.targetIndicator;
-		console.log("cheats.targetIndicator: ", cheats.targetIndicator);
+		cheats.targetIndicators = !cheats.targetIndicators;
+		console.log("cheats.targetIndicators: ", cheats.targetIndicators);
+	}
+	if (e.key == "T") {
+		cheats.sarsTargetIndicator = !cheats.sarsTargetIndicator;
+		console.log("cheats.sarsTargetIndicator: ", cheats.sarsTargetIndicator);
 	}
 	if (e.key == "s") {
 		sars.speed++;
@@ -140,6 +145,10 @@ addEventListener("keypress", function(e) {
 	if (e.key == "h") {
 		cheats.hud = !cheats.hud;
 		console.log("cheats.hud: ", cheats.hud);
+	}
+	if (e.key == "?") {
+		cheats.menu = !cheats.menu;
+		console.log("cheats.menu: ", cheats.menu);
 	}
 }, false);
 
@@ -260,6 +269,20 @@ var render = function () {
 			ctx.drawImage(sarsImage, sars.x, sars.y);
 		}
 	}
+	if (cheats.menu) {
+		ctx.font = "14px Arial Black";
+		ctx.fillStyle = "white";
+		ctx.textAlign = "center";
+		ctx.fillText("Cheat/Shortcut Menu", 410, 275);
+		ctx.fillText("-----------------------------", 410, 285);
+		ctx.fillText("h - Toggle HUD (Heads Up Display)", 410, 300);
+		ctx.fillText("T - Toggle SARS Spike Target Indicator", 410, 315);
+		ctx.fillText("t - Toggle all potential SARS Spike Target Indicators", 410, 330);
+		ctx.fillText("s - Increase SARS speed", 410, 345);
+		ctx.fillText("S - Decrease SARS speed", 410, 360);
+		ctx.fillText("? - Toggle cheat menu", 410, 375);
+	}
+
 	if (cheats.hud) {
 		ctx.font = "14px Arial Black";
 		ctx.fillStyle = "white";
@@ -270,12 +293,20 @@ var render = function () {
 		ctx.fillText("Time to Impact: " + (distance/sars.pps).toFixed(1) + " seconds", 410, 105);
 	}
 
-	// Target Indicator
-	if ( cheats.targetIndicator == true ) {
+	// Target Indicators
+	if ( cheats.targetIndicators == true ) {
 		ctx.fillStyle = "red";
 		ctx.textAlign = "center";
 		ctx.font = "16px Arial Black";
-		ctx.fillText("X", sars.Xtarget, sars.Ytarget+13);
+		for (let index = 0; index < (sars.XtargetSites).length; index++) {
+			ctx.fillText("x", (sars.XtargetSites)[index], (sars.YtargetSites)[index]+13);			
+		}
+	}
+	if ( cheats.sarsTargetIndicator == true ) {
+		ctx.fillStyle = "red";
+		ctx.textAlign = "center";
+		ctx.font = "16px Arial Black";
+		ctx.fillText("X", sars.Xtarget, sars.Ytarget+13);			
 	}
 
 	// Title
