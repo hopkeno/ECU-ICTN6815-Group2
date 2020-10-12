@@ -42,6 +42,7 @@ var score = {
 	sars: 0,
 	paused: false,
 	gameover: false,
+	levelup: false,
 }
 
 var newGame = function () {
@@ -52,6 +53,7 @@ var newGame = function () {
 	score.paused = false;
 	score.gameover = false;
 	sars.speed = 2;
+	score.levelup = false;
 	sarsDestroyed = 0;
 	sars.x = 0;
 	sars.y = 0;
@@ -163,21 +165,25 @@ addEventListener("keypress", function(e) {
 }, false);
 
 addEventListener("click", function (e) {
-	if (debug.level == "info") console.log("Shot fired towards: ", e.clientX, e.clientY);
-	// the - 21 is an adjustment to move the image to the middle of the crosshairs
-	// otherwise the top left corner of the image is placed at the bottom right corner of the crosshair
-	rna.targetX = e.clientX - 21;
-	rna.targetY = e.clientY - 21;
-	// keep the cursor target on the battleground
-	if (rna.targetX < 100) {
-		rna.targetX = 100;
-	} else if (rna.targetX > 735) {
-		rna.targetX = 735;
-	}
-	if (rna.targetY < 60) {
-		rna.targetY = 60;
-	} else if (rna.targetY > 475) {
-		rna.targetY = jonas.y - 13;
+	if (score.levelup == true) {
+		score.levelup = false;
+	} else {
+		if (debug.level == "info") console.log("Shot fired towards: ", e.clientX, e.clientY);
+		// the - 21 is an adjustment to move the image to the middle of the crosshairs
+		// otherwise the top left corner of the image is placed at the bottom right corner of the crosshair
+		rna.targetX = e.clientX - 21;
+		rna.targetY = e.clientY - 21;
+		// keep the cursor target on the battleground
+		if (rna.targetX < 100) {
+			rna.targetX = 100;
+		} else if (rna.targetX > 735) {
+			rna.targetX = 735;
+		}
+		if (rna.targetY < 60) {
+			rna.targetY = 60;
+		} else if (rna.targetY > 475) {
+			rna.targetY = jonas.y - 13;
+		}
 	}
 }, false);
 
@@ -206,7 +212,7 @@ var reset = function () {
 
 // Update game objects
 var update = function (modifier) {
-	if (score.paused == false) {
+	if (score.paused == false && score.levelup == false) {
 		rna.x = rna.targetX;
 		rna.y = rna.targetY;
 		sars.x += sars.speed;
@@ -225,7 +231,7 @@ var update = function (modifier) {
 			if (sarsDestroyed % 5 == 0) {
 				score.level++;
 				sars.speed+=2;
-				levelUp(score.level);
+				score.levelup = !score.levelup;
 			}
 			score.value += score.multiplier;
 			if (debug.level == "info") console.log("SARS Destroyed! Current score: ", sarsDestroyed );
@@ -246,13 +252,7 @@ var update = function (modifier) {
 		}
 	}
 };
-const delay = ms => new Promise(res => setTimeout(res, ms));
-var levelUp = async function (level) {
-	ctx.font = "92px Impact";
-	ctx.textAlign = "left";
-	ctx.fillText("LEVEL " + level, 210, 325);
-	await delay(3000);
-}
+
 // Draw everything
 var render = function () {
 	if (strikeReady && strikeActive) {
@@ -277,6 +277,12 @@ var render = function () {
 			ctx.fillText("PAUSED", 275, 325);	
 			ctx.font = "16px Impact";
 			ctx.fillText("Press spacebar to resume", 330, 350);
+		} else if (score.levelup) {
+			ctx.font = "92px Impact";
+			ctx.textAlign = "center";
+			ctx.fillText("LEVEL " + score.level, 410, 325);
+			ctx.font = "16px Impact";
+			ctx.fillText("Click to begin level " + score.level, 410, 350);	
 		} else if (rnaReady && sarsReady) {
 			ctx.drawImage(sarsImage, sars.x, sars.y);
 			ctx.drawImage(rnaImage, rna.x, rna.y);
