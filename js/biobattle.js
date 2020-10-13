@@ -9,7 +9,7 @@ var debug = {
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
 canvas.width = 820;
-canvas.height = 800;
+canvas.height = 760;
 document.body.appendChild(canvas);
 
 // Background image
@@ -55,7 +55,7 @@ var newGame = function () {
 	score.sars = 0;
 	score.paused = false;
 	score.gameover = false;
-	sars.speed = 2;
+	sars.speed = 1;
 	score.levelup = false;
 	sarsDestroyed = 0;
 	sars.x = sars.y = 0;
@@ -68,7 +68,7 @@ var cheats = {
 	sarsTargetIndicator: false,
 	originIndicators: false,
 	sarsLaunchIndicator: false,
-	hud: true,
+	hud: false,
 	nextLaunch: false,
 }
 
@@ -103,14 +103,14 @@ var jonas = {
 }
 
 var rna = {
-	speed: 25, // movement in pixels per second
+	speed: 10, // movement in pixels per interval
 	count: 5,  // number or RNA particles allowed
 	pps: 0,	   // pixels per second speed of RNA
 	Xtarget: null,
 	Ytarget: null
 };
 var sars = {
-	speed: 2, // movement in pixels per second
+	speed: 1, // movement in pixels per interval
 	count: 5,	// number of SARS Spikes on screen
 	limit: 10,	// number of SARS Spikes that can hit earth
 	XlaunchSites: [145,170,170,145,99],
@@ -217,14 +217,14 @@ addEventListener("click", function (e) {
 
 // Reset the game when the player destroys a sars
 var reset = function () {
-	rna.Xtarget = jonas.x;
+	rna.Xtarget = null;
 	rna.x = jonas.x;
-	rna.Ytarget = jonas.y - 13;
+	rna.Ytarget = null;
 	rna.y = jonas.y - 13;
 
-	// Throw the sars somewhere on the screen randomly
 	// Select a random launch site
 	var sarsLaunch = Math.floor((Math.random() * sars.count));
+	// random...  unless, that is, we have a cheat telling us where to launch from 
 	if (cheats.nextLaunch) {
 		sarsLaunch = sars.launchPosition = cheats.nextLaunch-1;
 		cheats.nextLaunch = false;
@@ -233,7 +233,9 @@ var reset = function () {
 	}
 	sars.x = sars.XlaunchSites[sarsLaunch];
 	sars.y = sars.YlaunchSites[sarsLaunch];
+	// Select a random target site
 	var sarsTarget = Math.floor((Math.random() * sars.count));
+	// random...  unless, that is, we have a cheat telling us where to target 
 	if (cheats.nextTarget) {
 		sarsTarget = cheats.nextTarget-1;
 		cheats.nextTarget = false;
@@ -254,7 +256,7 @@ var reset = function () {
 var update = function (modifier) {
 	if (score.paused == false && score.levelup == false) {
 		// rna movements
-		var fireShots = false;  //set to false for click based, true for shooting action
+		var fireShots = true;  //set to false for click based, true for shooting action
 
 		// click based targeting
 		if (!fireShots) {
@@ -263,6 +265,25 @@ var update = function (modifier) {
 		}
 
 		// shot based firing
+		if (fireShots && rna.Xtarget && rna.Ytarget) {
+			rna.y -= rna.speed;	//move vertically at our existing speed
+			rna.x -= (rna.Xtarget-rna.x)/(rna.Ytarget-rna.y) * rna.speed;
+			rna.pps = rna.speed/modifier;
+			// reload the Jonas Salk cannon when the RNA leaves the battleground
+			if (rna.x < 100) {
+				rna.Xtarget = null;
+				rna.x = jonas.x;
+				rna.Ytarget = null;
+				rna.y = jonas.y - 13;
+			} else if (rna.y < 60) {
+				rna.Xtarget = null;
+				rna.x = jonas.x;
+				rna.Ytarget = null;
+				rna.y = jonas.y - 13;
+			}
+		} else {
+			// distance is to crosshairs
+		}
 		// sars movements
 		sars.x += sars.speed;
 		sars.pps = sars.speed/modifier;
@@ -277,7 +298,9 @@ var update = function (modifier) {
 			&& sars.y <= (rna.y + 25)
 		) {
 			sarsDestroyed++;
-			sars.speed += 2;
+			if (sarsDestroyed % 2 == 0) {
+				sars.speed ++;
+			}
 			if (sarsDestroyed % 5 == 0) {
 				score.level++;
 				sars.speed = score.level + 3;
@@ -296,7 +319,7 @@ var update = function (modifier) {
 					//Keep the stats the same but flash the earth
 					score.sars = 2020;
 					score.sarsDelivered = sars.limit + 1;
-					sars.speed = 75;
+					sars.speed = 50;
 				}
 				reset();
 		}
