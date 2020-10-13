@@ -303,10 +303,10 @@ var render = function () {
 	} else {
 		if (score.paused) {
 			ctx.font = "92px Impact";
-			ctx.textAlign = "left";
-			ctx.fillText("PAUSED", 275, 325);	
+			ctx.textAlign = "center";
+			ctx.fillText("PAUSED", 410, 325);	
 			ctx.font = "16px Impact";
-			ctx.fillText("Press spacebar to resume", 330, 350);
+			ctx.fillText("Right-click or press spacebar to resume", 410, 350);
 		} else if (score.levelup) {
 			ctx.font = "92px Impact";
 			ctx.textAlign = "center";
