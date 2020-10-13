@@ -58,8 +58,8 @@ var newGame = function () {
 	sars.speed = 2;
 	score.levelup = false;
 	sarsDestroyed = 0;
-	sars.x = 0;
-	sars.y = 0;
+	sars.x = sars.y = 0;
+	sars.Xtarget = sars.Ytarget = 0;
 	reset();
 }
 
@@ -103,8 +103,9 @@ var jonas = {
 var rna = {
 	speed: 256, // movement in pixels per second
 	count: 5,    // number or RNA particles allowed
-	targetX: null,
-	targetY: null
+	pps: 0,	   // pixels per second speed of RNA
+	Xtarget: null,
+	Ytarget: null
 };
 var sars = {
 	speed: 2, // movement in pixels per second
@@ -167,6 +168,14 @@ addEventListener("keypress", function(e) {
 	}
 }, false);
 
+addEventListener("mousemove", function (e) {
+	// just track mouse movements
+	if (cheats.hud) {
+		rna.Xcrosshair = e.clientX - 21;
+		rna.Ycrosshair = e.clientY - 21;
+	}
+}, false);
+
 addEventListener("click", function (e) {
 	if (score.levelup == true) {
 		score.levelup = false;
@@ -174,26 +183,28 @@ addEventListener("click", function (e) {
 		if (debug.level == "info") console.log("Shot fired towards: ", e.clientX, e.clientY);
 		// the - 21 is an adjustment to move the image to the middle of the crosshairs
 		// otherwise the top left corner of the image is placed at the bottom right corner of the crosshair
-		rna.targetX = e.clientX - 21;
-		rna.targetY = e.clientY - 21;
+		rna.Xtarget = e.clientX - 21;
+		rna.Ytarget = e.clientY - 21;
 		// keep the cursor target on the battleground
-		if (rna.targetX < 100) {
-			rna.targetX = 100;
-		} else if (rna.targetX > 735) {
-			rna.targetX = 735;
+		if (rna.Xtarget < 100) {
+			rna.Xtarget = 100;
+		} else if (rna.Xtarget > 735) {
+			rna.Xtarget = 735;
 		}
-		if (rna.targetY < 60) {
-			rna.targetY = 60;
-		} else if (rna.targetY > 475) {
-			rna.targetY = jonas.y - 13;
+		if (rna.Ytarget < 60) {
+			rna.Ytarget = 60;
+		} else if (rna.Ytarget > 475) {
+			rna.Ytarget = jonas.y - 13;
 		}
 	}
 }, false);
 
 // Reset the game when the player destroys a sars
 var reset = function () {
-	rna.targetX = rna.x = jonas.x;
-	rna.targetY = rna.y = jonas.y - 13;
+	rna.Xtarget = null;
+	rna.x = jonas.x;
+	rna.Ytarget = null;
+	rna.y = jonas.y - 13;
 
 	// Throw the sars somewhere on the screen randomly
 	// Select a random launch site
@@ -207,10 +218,10 @@ var reset = function () {
 		console.log("Spike position: location", sarsLaunch+1, " ", sars.x, ",", sars.y);
 		console.log("Spike Target: location", sarsTarget+1, " ", sars.Xtarget, ",", sars.Ytarget);
 		console.log("RNA position: ", rna.x, ",", rna.y);
-		console.log("RNA target: ", rna.targetX, ",", rna.targetY);
+		console.log("RNA target: ", rna.Xtarget, ",", rna.Ytarget);
 		console.log("Jonas Salk position: ", jonas.x, ",", jonas.y);
 	}
-	if (debug.level == "verbose") console.log("Distance between SARS Spike and Earth: ", 	sarsTrajectory({x: sars.x,y: sars.y},{x: sars.Xtarget, y: sars.Ytarget}));
+	if (debug.level == "verbose") console.log("Distance between SARS Spike and Earth: ", 	trajectory({x: sars.x,y: sars.y},{x: sars.Xtarget, y: sars.Ytarget}));
 };
 
 // Update game objects
@@ -231,9 +242,10 @@ var update = function (modifier) {
 			&& sars.y <= (rna.y + 25)
 		) {
 			sarsDestroyed++;
+			sars.speed += 2;
 			if (sarsDestroyed % 5 == 0) {
 				score.level++;
-				sars.speed+=2;
+				sars.speed = score.level + 3;
 				score.levelup = !score.levelup;
 			}
 			score.value += score.multiplier;
@@ -312,10 +324,43 @@ var render = function () {
 		ctx.font = "14px Arial Black";
 		ctx.fillStyle = "white";
 		ctx.textAlign = "center";
-		var distance = sarsTrajectory({x: sars.x,y: sars.y},{x: sars.Xtarget, y: sars.Ytarget});
-		ctx.fillText("SARS Spike Speed: " + sars.pps.toFixed(2) + " pps", 410, 75);
-		ctx.fillText("Distance to Impact: " + distance.toFixed(2) + " pixels", 410, 90);
-		ctx.fillText("Time to Impact: " + (distance/sars.pps).toFixed(1) + " seconds", 410, 105);
+		var sarsDistance = trajectory({x: sars.x,y: sars.y},{x: sars.Xtarget, y: sars.Ytarget});
+		var rnaDistance = trajectory({x: rna.x,y: rna.y},{x: rna.Xtarget, y: rna.Ytarget});
+		var sarsHudStart = rnaHudStart = 75;
+		ctx.fillText("SARS Spike Speed: " + sars.pps.toFixed(2) + " pps", 230, sarsHudStart);
+		ctx.fillText("SARS Distance to Target: " + sarsDistance.toFixed(2) + " pixels", 230, sarsHudStart+=15);
+		ctx.fillText("SARS Time to Impact: " + (sarsDistance/sars.pps).toFixed(1) + " seconds", 230, sarsHudStart+=15);
+		ctx.fillText("RNA Speed: " + rna.pps.toFixed(2) + " pps", 610, rnaHudStart);
+		ctx.fillText("RNA Distance to Target: " + rnaDistance.toFixed(2) + " pixels", 610, rnaHudStart+=15);
+		ctx.fillText("RNA Time to Target: " + (rnaDistance/rna.pps).toFixed(1) + " seconds", 610, rnaHudStart+=15);
+		ctx.textAlign = "left";
+		ctx.fillText(rna.Xcrosshair + "," + rna.Ycrosshair, rna.Xcrosshair + 21, rna.Ycrosshair);
+		ctx.fillText(Math.floor(rna.x) + "," + Math.floor(rna.y), rna.x + 21, rna.y);
+		ctx.fillStyle = "green";
+		ctx.fillText("x", rna.Xtarget, rna.Ytarget);
+		ctx.fillText("R", rna.x, rna.y);
+		ctx.fillStyle = "red";
+		ctx.fillText("S", sars.x, sars.y);
+		ctx.fillText("X", sars.Xtarget, sars.Ytarget);
+		ctx.beginPath();
+		ctx.strokeStyle = "green";
+		ctx.lineWidth = 2;
+		ctx.moveTo(rna.x+13, rna.y+13);
+		if (rna.Xtarget) {
+			ctx.lineTo(rna.Xtarget, rna.Ytarget);
+		} else {
+			ctx.lineTo(rna.Xcrosshair+13, rna.Ycrosshair+13 );
+		}
+		ctx.stroke();
+		ctx.beginPath();
+		ctx.strokeStyle = "red";
+		ctx.lineWidth = 2;
+		ctx.moveTo(sars.x, sars.y);
+		ctx.lineTo(sars.Xtarget, sars.Ytarget);
+		ctx.stroke();
+		ctx.beginPath();
+
+	
 	}
 
 	// Target Indicators
@@ -388,7 +433,7 @@ var render = function () {
 
 };
 
-var sarsTrajectory = function(start,end) {
+var trajectory = function(start,end) {
 	var xdistance = (end.x - start.x);
 	var ydistance = (end.y - start.y);
 	// use pythagoras theorem to work out the magnitude of the vector
