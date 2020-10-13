@@ -2,7 +2,7 @@
 // https://github.com/hopkeno/ECU-ICTN6815-Group2.git
 
 var debug = {
-	level: "warn",
+	level: "info",
 };
 
 // Create the canvas
@@ -101,8 +101,8 @@ var jonas = {
 }
 
 var rna = {
-	speed: 256, // movement in pixels per second
-	count: 5,    // number or RNA particles allowed
+	speed: 25, // movement in pixels per second
+	count: 5,  // number or RNA particles allowed
 	pps: 0,	   // pixels per second speed of RNA
 	Xtarget: null,
 	Ytarget: null
@@ -129,13 +129,8 @@ addEventListener("keypress", function(e) {
 		if (score.gameover == true) {
 			newGame();
 		} else {
-			if (score.paused == true) {
-				if (debug.level == "info") console.log("Resuming action");
-				score.paused = false;
-			} else {
-				if (debug.level == "info") console.log("Game Paused. ", e.which);
-				score.paused = true;
-			}
+			score.paused = !score.paused;
+			if (debug.level == "info") console.log("Game Paused: ", score.paused);
 		}
 	}
 	if (e.key == "t") {
@@ -149,6 +144,10 @@ addEventListener("keypress", function(e) {
 	if (e.key == "o") {
 		cheats.originIndicators = !cheats.originIndicators;
 		if (debug.level == "info") console.log("cheats.originIndicators: ", cheats.originIndicators);
+	}
+	if (e.key == "O") {
+		cheats.sarsLaunchIndicator = !cheats.sarsLaunchIndicator;
+		if (debug.level == "info") console.log("cheats.sarsLaunchIndicator: ", cheats.sarsLaunchIndicator);
 	}
 
 	if (e.key == "s") {
@@ -176,6 +175,12 @@ addEventListener("mousemove", function (e) {
 	}
 }, false);
 
+addEventListener("contextmenu", function (e) {
+	e.preventDefault();
+	score.paused = !score.paused;
+	if (debug.level == "info") console.log("Game Paused: ", score.paused);
+}, false);
+
 addEventListener("click", function (e) {
 	if (score.levelup == true) {
 		score.levelup = false;
@@ -201,14 +206,15 @@ addEventListener("click", function (e) {
 
 // Reset the game when the player destroys a sars
 var reset = function () {
-	rna.Xtarget = null;
+	rna.Xtarget = jonas.x;
 	rna.x = jonas.x;
-	rna.Ytarget = null;
+	rna.Ytarget = jonas.y - 13;
 	rna.y = jonas.y - 13;
 
 	// Throw the sars somewhere on the screen randomly
 	// Select a random launch site
 	var sarsLaunch = Math.floor((Math.random() * sars.count));
+	sars.launchPosition = sarsLaunch;
 	sars.x = sars.XlaunchSites[sarsLaunch];
 	sars.y = sars.YlaunchSites[sarsLaunch];
 	var sarsTarget = Math.floor((Math.random() * sars.count));
@@ -227,11 +233,20 @@ var reset = function () {
 // Update game objects
 var update = function (modifier) {
 	if (score.paused == false && score.levelup == false) {
-		rna.x = rna.targetX;
-		rna.y = rna.targetY;
+		// rna movements
+		var fireShots = false;  //set to false for click based, true for shooting action
+
+		// click based targeting
+		if (!fireShots) {
+			rna.x = rna.Xtarget;
+			rna.y = rna.Ytarget;
+		}
+
+		// shot based firing
+		// sars movements
 		sars.x += sars.speed;
 		sars.pps = sars.speed/modifier;
-		if (debug.level == "verbose") console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.targetX, ",", rna.targetY);
+		if (debug.level == "verbose") console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.Xtarget, ",", rna.Ytarget);
 		if (debug.level == "verbose") console.log("SARS position: ", sars.x, ",", sars.y, "; Trajectory: ", sars.Xtarget, ",", sars.Ytarget);
 		sars.y += (sars.Ytarget-sars.y)/(sars.Xtarget-sars.x);
 		// Are they touching?
@@ -314,7 +329,8 @@ var render = function () {
 		ctx.fillText("h - Toggle HUD (Heads Up Display)", 410, start+=15);
 		ctx.fillText("T - Toggle SARS Spike Target Indicator", 410, start+=15);
 		ctx.fillText("t - Toggle all potential SARS Spike Target Indicators", 410, start+=15);
-		ctx.fillText("o - Toggle SARS Spike Origin Indicators", 410, start+=15);
+		ctx.fillText("o - Toggle SARS Spike Launch Origin Indicator", 410, start+=15);
+		ctx.fillText("o - Toggle all SARS Spike Origin Indicators", 410, start+=15);
 		ctx.fillText("s - Increase SARS speed", 410, start+=15);
 		ctx.fillText("S - Decrease SARS speed", 410, start+=15);
 		ctx.fillText("? - Toggle cheat menu", 410, start+=15);
@@ -336,21 +352,14 @@ var render = function () {
 		ctx.textAlign = "left";
 		ctx.fillText(rna.Xcrosshair + "," + rna.Ycrosshair, rna.Xcrosshair + 21, rna.Ycrosshair);
 		ctx.fillText(Math.floor(rna.x) + "," + Math.floor(rna.y), rna.x + 21, rna.y);
-		ctx.fillStyle = "green";
-		ctx.fillText("x", rna.Xtarget, rna.Ytarget);
-		ctx.fillText("R", rna.x, rna.y);
 		ctx.fillStyle = "red";
 		ctx.fillText("S", sars.x, sars.y);
 		ctx.fillText("X", sars.Xtarget, sars.Ytarget);
 		ctx.beginPath();
 		ctx.strokeStyle = "green";
 		ctx.lineWidth = 2;
-		ctx.moveTo(rna.x+13, rna.y+13);
-		if (rna.Xtarget) {
-			ctx.lineTo(rna.Xtarget, rna.Ytarget);
-		} else {
-			ctx.lineTo(rna.Xcrosshair+13, rna.Ycrosshair+13 );
-		}
+		ctx.moveTo(jonas.x+13, jonas.y);
+		ctx.lineTo(rna.Xcrosshair+13, rna.Ycrosshair+18 );
 		ctx.stroke();
 		ctx.beginPath();
 		ctx.strokeStyle = "red";
@@ -385,8 +394,14 @@ var render = function () {
 		ctx.textAlign = "center";
 		ctx.font = "16px Arial Black";
 		for (let index = 0; index < (sars.XlaunchSites).length; index++) {
-			ctx.fillText("O", (sars.XlaunchSites)[index], (sars.YlaunchSites)[index]+13);			
+			ctx.fillText("o", (sars.XlaunchSites)[index], (sars.YlaunchSites)[index]+13);			
 		}
+	}
+	if ( cheats.sarsLaunchIndicator == true ) {
+		ctx.fillStyle = "white";
+		ctx.textAlign = "center";
+		ctx.font = "16px Arial Black";
+		ctx.fillText("O", (sars.XlaunchSites)[sars.launchPosition], (sars.YlaunchSites)[sars.launchPosition]+13);			
 	}
 
 
