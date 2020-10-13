@@ -119,7 +119,7 @@ var sars = {
 	YtargetSites: [170,225,285,350,400],
 	pps: 0,
 };
-var sarsMultiplier =  Math.floor(2020 / (sars.limit+1));
+var sarsMultiplier =  Math.ceil(2020 / (sars.limit+1));
 
 var sarsDestroyed = 0;
 // Handle keyboard controls
@@ -170,6 +170,11 @@ addEventListener("keypress", function(e) {
 	if (e.key == "1" || e.key == "2" || e.key == "3" || e.key == "4" || e.key == "5") {
 		cheats.nextLaunch = e.key;
 		console.log("Next SARS Launch Location set to :" + cheats.nextLaunch);
+	}
+	if (e.key == "6" || e.key == "7" || e.key == "8" || e.key == "9" || e.key == "0") {
+		cheats.nextTarget = e.key;
+		cheats.nextTarget = (Math.abs(cheats.nextTarget - 5));
+		console.log("Next SARS Target Location set to :" + cheats.nextTarget);
 	}
 }, false);
 
@@ -229,6 +234,10 @@ var reset = function () {
 	sars.x = sars.XlaunchSites[sarsLaunch];
 	sars.y = sars.YlaunchSites[sarsLaunch];
 	var sarsTarget = Math.floor((Math.random() * sars.count));
+	if (cheats.nextTarget) {
+		sarsTarget = cheats.nextTarget-1;
+		cheats.nextTarget = false;
+	}
 	sars.Xtarget = sars.XtargetSites[sarsTarget];
 	sars.Ytarget = sars.YtargetSites[sarsTarget];
 	if (debug.level == "info") {
@@ -259,7 +268,7 @@ var update = function (modifier) {
 		sars.pps = sars.speed/modifier;
 		if (debug.level == "verbose") console.log("RNA position: ", rna.x, ",", rna.y, "; Trajectory: ", rna.Xtarget, ",", rna.Ytarget);
 		if (debug.level == "verbose") console.log("SARS position: ", sars.x, ",", sars.y, "; Trajectory: ", sars.Xtarget, ",", sars.Ytarget);
-		sars.y += (sars.Ytarget-sars.y)/(sars.Xtarget-sars.x);
+		sars.y += (sars.Ytarget-sars.y)/(sars.Xtarget-sars.x) * sars.speed;
 		// Are they touching?
 		if (
 			rna.x <= (sars.x + 25)
@@ -345,6 +354,7 @@ var render = function () {
 		ctx.fillText("s - Increase SARS speed", 410, start+=15);
 		ctx.fillText("S - Decrease SARS speed", 410, start+=15);
 		ctx.fillText("1-5 - Press 1 through 5 to set next SARS launch position", 410, start+=15);
+		ctx.fillText("6-0 - Press 6 through 0 to set next SARS target position", 410, start+=15);
 		ctx.fillText("? - Toggle cheat menu", 410, start+=15);
 	}
 
