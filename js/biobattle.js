@@ -67,7 +67,9 @@ var cheats = {
 	targetIndicators: false,
 	sarsTargetIndicator: false,
 	originIndicators: false,
-	hud: false,
+	sarsLaunchIndicator: false,
+	hud: true,
+	nextLaunch: false,
 }
 
 // Position the cannon of the Jonas Salk
@@ -165,6 +167,10 @@ addEventListener("keypress", function(e) {
 		cheats.menu = !cheats.menu;
 		if (debug.level == "info") console.log("cheats.menu: ", cheats.menu);
 	}
+	if (e.key == "1" || e.key == "2" || e.key == "3" || e.key == "4" || e.key == "5") {
+		cheats.nextLaunch = e.key;
+		console.log("Next SARS Launch Location set to :" + cheats.nextLaunch);
+	}
 }, false);
 
 addEventListener("mousemove", function (e) {
@@ -214,7 +220,12 @@ var reset = function () {
 	// Throw the sars somewhere on the screen randomly
 	// Select a random launch site
 	var sarsLaunch = Math.floor((Math.random() * sars.count));
-	sars.launchPosition = sarsLaunch;
+	if (cheats.nextLaunch) {
+		sarsLaunch = sars.launchPosition = cheats.nextLaunch-1;
+		cheats.nextLaunch = false;
+	} else {
+		sars.launchPosition = sarsLaunch;
+	}
 	sars.x = sars.XlaunchSites[sarsLaunch];
 	sars.y = sars.YlaunchSites[sarsLaunch];
 	var sarsTarget = Math.floor((Math.random() * sars.count));
@@ -333,6 +344,7 @@ var render = function () {
 		ctx.fillText("o - Toggle all SARS Spike Origin Indicators", 410, start+=15);
 		ctx.fillText("s - Increase SARS speed", 410, start+=15);
 		ctx.fillText("S - Decrease SARS speed", 410, start+=15);
+		ctx.fillText("1-5 - Press 1 through 5 to set next SARS launch position", 410, start+=15);
 		ctx.fillText("? - Toggle cheat menu", 410, start+=15);
 	}
 
