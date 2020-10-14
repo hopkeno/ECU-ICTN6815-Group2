@@ -368,7 +368,7 @@ var render = function () {
 		var start = 225;
 		ctx.fillText("Cheat/Shortcut Menu", 410, start);
 		ctx.fillText("--------------------------------------", 410, start+=15);
-		ctx.fillText("space - Pause/Resume game", 410,start+=15);
+		ctx.fillText("space/right-click - Pause/Resume game", 410,start+=15);
 		ctx.fillText("h - Toggle HUD (Heads Up Display)", 410, start+=15);
 		ctx.fillText("T - Toggle SARS Spike Target Indicator", 410, start+=15);
 		ctx.fillText("t - Toggle all potential SARS Spike Target Indicators", 410, start+=15);
