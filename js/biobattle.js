@@ -19,7 +19,9 @@ var titleImage = new Image();
 titleImage.onload = function () {
 	titleReady = true;
 	firstLoad = true;
-	document.body.style.backgroundColor = "black";
+	//swap to the black background if using the drawing rendering of the title screen.
+	//if using the drawing versions overall, probably easier to swap it out in CSS
+	//	document.body.style.backgroundColor = "black";
 }
 titleImage.src = "images/background.png";
 
