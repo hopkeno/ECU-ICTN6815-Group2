@@ -219,7 +219,7 @@ addEventListener("mousemove", function (e) {
 
 addEventListener("contextmenu", function (e) {
 	e.preventDefault();
-	if (!firstLoad) {
+	if (!firstLoad && !score.gameover) {
 		score.paused = !score.paused;
 		if (debug.level == "info") console.log("Game Paused: ", score.paused);
 	}
@@ -230,6 +230,8 @@ addEventListener("click", function (e) {
 		firstLoad = !firstLoad;
 		audioTitleReady = !audioTitleReady;
 		reset();
+	} else if (score.paused || score.gameover) {
+		return;
 	} else {
 		if (score.levelup) {
 			score.levelup = !score.levelup;
