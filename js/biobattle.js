@@ -8,9 +8,11 @@ var debug = {
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 820;
-canvas.height = 760;
+canvas.width = 797;
+canvas.height = 400;
 document.body.appendChild(canvas);
+
+var theme = 0;
 
 // Title Screen
 var titleReady = false;
@@ -23,11 +25,12 @@ titleImage.onload = function () {
 	//if using the drawing versions overall, probably easier to swap it out in CSS
 	//	document.body.style.backgroundColor = "black";
 }
-titleImage.src = "images/background.png";
+titleImage.src = "images/title.png";
 
 // Audio Clips
 var audioTitle = new Audio("audio/title.mp3");
 var audioTitleReady = true;
+audioTitle.loop = true;
 var audioRNA = new Audio("audio/fire.mp3");
 var audioHIT = new Audio("audio/hit.mp3");
 
@@ -37,7 +40,6 @@ var bgImage = new Image();
 bgImage.onload = function () {
 	bgReady = true;
 };
-bgImage.src = "images/background.png";
 
 // Background Earth Strike image
 var strikeReady = false;
@@ -46,7 +48,6 @@ var strikeImage = new Image();
 strikeImage.onload = function () {
 	strikeReady = true;
 };
-strikeImage.src = "images/strike.png";
 
 // Prep the rectangular game area
 var gameArea = {
@@ -114,7 +115,6 @@ var sarsImage = new Image();
 sarsImage.onload = function () {
 	sarsReady = true;
 };
-sarsImage.src = "images/corona.png";
 
 // Game objects
 var jonas = {
@@ -139,6 +139,7 @@ var sars = {
 	YtargetSites: [170,225,285,350,400],
 	pps: 0,
 };
+
 var sarsMultiplier =  Math.ceil(2020 / (sars.limit+1));
 
 var sarsDestroyed = 0;
@@ -188,7 +189,11 @@ addEventListener("keypress", function(e) {
 		if (debug.level == "info") console.log("cheats.menu: ", cheats.menu);
 	}
 	if (e.key == "1" || e.key == "2" || e.key == "3" || e.key == "4" || e.key == "5") {
-		cheats.nextLaunch = e.key;
+		if (e.key > sars.count) {
+			cheats.nextLaunch = sars.count;
+		} else {
+			cheats.nextLaunch = e.key;
+		}
 		console.log("Next SARS Launch Location set to :" + cheats.nextLaunch);
 	}
 	if (e.key == "6" || e.key == "7" || e.key == "8" || e.key == "9" || e.key == "0") {
@@ -205,6 +210,7 @@ addEventListener("keypress", function(e) {
 	}
 	if (e.key == "m") {
 		cheats.mute = !cheats.mute;
+		if (cheats.mute) { audioTitle.pause() } else { audioTitle.play() };
 		if (debug.level == "info") console.log("cheats.mute: ", cheats.mute);
 	}
 }, false);
@@ -229,6 +235,26 @@ addEventListener("click", function (e) {
 	if (firstLoad) {
 		firstLoad = !firstLoad;
 		audioTitleReady = !audioTitleReady;
+		if (e.clientX >= 399) {
+			theme = 1;
+		} else {
+			theme = 2;
+		};
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		canvas.width = 820;
+		canvas.height = 760;
+		bgImage.src = "images/background" + theme + ".png";
+		strikeImage.src = "images/strike" + theme + ".png";
+		sarsImage.src = "images/corona" + theme + ".png";
+		if (theme == 2) {
+			sars.count = 2;	// number of SARS launch locations
+			sars.XlaunchSites = [160,160];
+			sars.YlaunchSites = [165,330];
+			sars.XtargetSites = [575,570,572,580,595,610,640];
+			sars.YtargetSites = [115,175,236,270,322,360,415];		
+			jonas.x = 410;
+			jonas.y = 530;
+		}
 		reset();
 	} else if (score.paused || score.gameover) {
 		return;
@@ -237,20 +263,33 @@ addEventListener("click", function (e) {
 			score.levelup = !score.levelup;
 		} else {
 			if (debug.level == "info") console.log("Shot fired towards: ", e.clientX, e.clientY);
+			if (theme == 2) { rnaReady = true; }
 			// the - 21 is an adjustment to move the image to the middle of the crosshairs
 			// otherwise the top left corner of the image is placed at the bottom right corner of the crosshair
 			if (!cheats.mute) {audioRNA.play() };
 			rna.Xtarget = e.clientX - 21;
 			rna.Ytarget = e.clientY - 21;
+			var xMax = 0;
+			var yMin = 0;
+			var yMax = 0;
+			if (theme == 1) {
+				xMax = 735;
+				yMin = 60;
+				yMax = 475;
+			} else {
+				xMax = 640;
+				yMin = 90;
+				yMax = 460;
+			}
 			// keep the cursor target on the battleground
 			if (rna.Xtarget < 100) {
 				rna.Xtarget = 100;
-			} else if (rna.Xtarget > 735) {
-				rna.Xtarget = 735;
+			} else if (rna.Xtarget > xMax) {
+				rna.Xtarget = xMax;
 			}
-			if (rna.Ytarget < 60) {
-				rna.Ytarget = 60;
-			} else if (rna.Ytarget > 475) {
+			if (rna.Ytarget < yMin) {
+				rna.Ytarget = yMin;
+			} else if (rna.Ytarget > yMax) {
 				rna.Ytarget = jonas.y - 13;
 			}
 		}
@@ -262,7 +301,12 @@ var reset = function () {
 	rna.Xtarget = null;
 	rna.x = jonas.x;
 	rna.Ytarget = null;
-	rna.y = jonas.y - 13;
+	if (theme == 1) {
+		rna.y = jonas.y - 13;
+	} else {
+		rna.y = jonas.y;
+		rnaReady = false;
+	}
 
 	// Select a random launch site
 	var sarsLaunch = Math.floor((Math.random() * sars.count));
@@ -347,6 +391,7 @@ var update = function (modifier) {
 			if (sarsDestroyed % 5 == 0) {
 				score.level++;
 				sars.speed = score.level + 3;
+				if (theme == 2) { rna.speed += 2; }
 				score.levelup = !score.levelup;
 			}
 			score.value += score.multiplier;
@@ -377,34 +422,38 @@ var render = function () {
 			//document.body.style.backgroundColor = initial;
 			if (!cheats.mute) {audioTitle.play() } else { audioTitle.pause() };
 			// Game Logo 
-			var title_gradient = ctx.createLinearGradient(235, 325, 535, 325);
+			var title_gradient = ctx.createLinearGradient(235, 425, 535, 425);
 			title_gradient.addColorStop(0, "red");
 			title_gradient.addColorStop(1, "#d0fa0d");
 			ctx.fillStyle = title_gradient;
 			ctx.font = "92px Impact";
 			ctx.textAlign = "left";
-			ctx.fillText("BioBattle", 235, 330)
-			ctx.font = "16px Impact";
-			ctx.fillText("Click for new game", 335, 355);
-
-
+			ctx.fillText("BioBattle", 235, 222);
 		}
 	} else if (strikeReady && strikeActive) {
 		ctx.drawImage(strikeImage, 0, 0);
 		strikeActive = false;
 	} else if (bgReady) {
-		audioTitle.pause();
-		audioTitleReady = false;
 		ctx.drawImage(bgImage, 0, 0);
-		if (jonasReady) {
+		if (jonasReady && theme == 1) {
 			ctx.drawImage(jonasImage, jonas.x, jonas.y);
 		}
 		if (score.gameover) {
-			ctx.font = "92px Impact";
-			ctx.textAlign = "left";
-			ctx.fillText("GAME OVER", 210, 325)
-			ctx.font = "16px Impact";
-			ctx.fillText("Press spacebar for new game", 330, 350);
+			if (theme == 1) {
+				ctx.font = "92px Impact";
+				ctx.textAlign = "left";
+				ctx.fillText("GAME OVER", 210, 325)
+				ctx.font = "16px Impact";
+				ctx.fillText("Press spacebar for new game", 330, 350);
+				ctx.fillText("Reload page (Ctrl-R) to swap themes", 300,375);
+			} else {
+				ctx.font = "72px Impact";
+				ctx.textAlign = "left";
+				ctx.fillText("GAME OVER", 220, 275)
+				ctx.font = "16px Impact";
+				ctx.fillText("Press spacebar for new game", 285, 300);	
+				ctx.fillText("Reload page (Ctrl-R) to swap themes", 255,325);
+			}
 		} else {
 			if (score.paused) {
 				ctx.font = "92px Impact";
@@ -413,14 +462,28 @@ var render = function () {
 				ctx.font = "16px Impact";
 				ctx.fillText("Right-click or press spacebar to resume", 410, 350);
 			} else if (score.levelup) {
-				ctx.font = "92px Impact";
-				ctx.textAlign = "center";
-				ctx.fillText("LEVEL " + score.level, 410, 325);
-				ctx.font = "16px Impact";
-				ctx.fillText("Click to begin level " + score.level, 410, 350);	
-			} else if (rnaReady && sarsReady) {
-				ctx.drawImage(sarsImage, sars.x, sars.y);
-				ctx.drawImage(rnaImage, rna.x, rna.y);
+				if (theme == 1) {
+					ctx.font = "92px Impact";
+					ctx.textAlign = "center";
+					ctx.fillText("LEVEL " + score.level, 410, 325);
+					ctx.font = "16px Impact";
+					ctx.fillText("Click to begin level " + score.level, 410, 350);	
+				} else {
+					//swap to the levelUp image
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					ctx.drawImage(levelImage, 0,0);
+					ctx.fillStyle = "#ca1a00";
+					ctx.font = "256px Impact";
+					ctx.textAlign = "center";
+					var textStart = 145;
+					if (score.level > 99) { textStart += 50; }
+					ctx.fillText(score.level, textStart, 400);
+					ctx.font = "16px Impact";
+					ctx.fillText("Click to begin level " + score.level, textStart, 450);	
+				}
+			} else {
+				if (rnaReady) {	ctx.drawImage(rnaImage, rna.x, rna.y); } 
+				if (sarsReady) { ctx.drawImage(sarsImage, sars.x, sars.y); }
 			}
 		}
 		if (cheats.menu) {
@@ -513,44 +576,81 @@ var render = function () {
 			ctx.fillText("O", (sars.XlaunchSites)[sars.launchPosition], (sars.YlaunchSites)[sars.launchPosition]+13);			
 		}
 
+		if (!score.levelup) {
+			if (theme == 1) {
+				// Game Logo 
+				var my_gradient = ctx.createLinearGradient(50, 700, 350, 700);
+				my_gradient.addColorStop(0, "red");
+				my_gradient.addColorStop(1, "#d0fa0d");
+				ctx.fillStyle = my_gradient;
+				ctx.font = "92px Impact";
+				ctx.textAlign = "left";
+				ctx.fillText("BioBattle", 50, 700);
 
-		// Game Logo 
-		var my_gradient = ctx.createLinearGradient(50, 700, 350, 700);
-		my_gradient.addColorStop(0, "red");
-		my_gradient.addColorStop(1, "#d0fa0d");
-		ctx.fillStyle = my_gradient;
-		ctx.font = "92px Impact";
-		ctx.textAlign = "left";
-		ctx.fillText("BioBattle", 50, 700);
+				// Text properties
+				ctx.fillStyle = "white";
+				ctx.font = "16px Arial Black";
 
-		// Text properties
-		ctx.fillStyle = "white";
-		ctx.font = "16px Arial Black";
+				// Level Indicator
+				ctx.textAlign = "left";
+				ctx.fillText("Level ", 175, 725);
+				ctx.fillText(score.level, 225, 725);
 
-		// Level Indicator
-		ctx.textAlign = "left";
-		ctx.fillText("Level ", 175, 725);
-		ctx.fillText(score.level, 225, 725);
+				// Scoreboard
+				ctx.beginPath();
+				ctx.textAlign = "left";
+				ctx.fillText("Spikes Destroyed:", 475, 625);
+				ctx.fillText("Lives saved:", 475, 650);
+				ctx.strokeStyle = "white";
+				ctx.lineWidth = 5;
+				ctx.moveTo(475, 670);
+				ctx.lineTo(720, 670);
+				ctx.fillText("Spikes Delivered:", 475, 700);
+				ctx.fillText("Lives lost:", 475, 725);
+				ctx.textAlign = "right";
+				ctx.fillStyle = "#d0fa0d";
+				ctx.fillText(sarsDestroyed, 720, 625);
+				ctx.fillText(score.value, 720, 650);
+				ctx.fillStyle = "red";
+				ctx.fillText(score.sarsDelivered, 720, 700);
+				ctx.fillText(score.sars, 720, 725);
+				ctx.stroke();
+			} else {
+				// Game Logo 
+				ctx.fillStyle = "red";
+				ctx.font = "52px Impact";
+				ctx.textAlign = "center";
+				ctx.fillText("BioBattle", 160, 550);
 
-		// Scoreboard
-		ctx.beginPath();
-		ctx.textAlign = "left";
-		ctx.fillText("Spikes Destroyed:", 475, 625);
-		ctx.fillText("Lives saved:", 475, 650);
-		ctx.strokeStyle = "white";
-		ctx.lineWidth = 5;
-		ctx.moveTo(475, 670);
-		ctx.lineTo(720, 670);
-		ctx.fillText("Spikes Delivered:", 475, 700);
-		ctx.fillText("Lives lost:", 475, 725);
-		ctx.textAlign = "right";
-		ctx.fillStyle = "#d0fa0d";
-		ctx.fillText(sarsDestroyed, 720, 625);
-		ctx.fillText(score.value, 720, 650);
-		ctx.fillStyle = "red";
-		ctx.fillText(score.sarsDelivered, 720, 700);
-		ctx.fillText(score.sars, 720, 725);
-		ctx.stroke();
+				// Text properties
+				ctx.fillStyle = "black";
+				ctx.font = "16px Arial Black";
+
+				// Level Indicator
+				ctx.fillText("Level " + score.level, 157, 565);
+
+				// Scoreboard
+				ctx.beginPath();
+				ctx.textAlign = "left";
+				var statsX = 50;
+				var scoresX = 260;
+				ctx.fillText("Spikes Destroyed:", statsX, 600);
+				ctx.fillText("Lives saved:", statsX, 625);
+				ctx.lineWidth = 5;
+				ctx.moveTo(statsX, 640);
+				ctx.lineTo(scoresX, 640);
+				ctx.fillText("Spikes Delivered:", statsX, 675);
+				ctx.fillText("Lives lost:", statsX, 700);
+				ctx.textAlign = "right";
+				ctx.fillStyle = "#d0fa0d";
+				ctx.fillText(sarsDestroyed, scoresX, 600);
+				ctx.fillText(score.value, scoresX, 625);
+				ctx.fillStyle = "red";
+				ctx.fillText(score.sarsDelivered, scoresX, 675);
+				ctx.fillText(score.sars, scoresX, 700);
+				ctx.stroke();
+			}
+		}
 	}
 };
 
