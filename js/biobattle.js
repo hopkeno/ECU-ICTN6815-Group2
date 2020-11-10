@@ -49,6 +49,15 @@ strikeImage.onload = function () {
 	strikeReady = true;
 };
 
+// LevelUp image
+var levelReady = false;
+var levelImage = new Image();
+levelImage.onload = function () {
+	levelReady = true;
+};
+levelImage.src = "images/level.png";
+
+
 // Prep the rectangular game area
 var gameArea = {
 	x: 100,
