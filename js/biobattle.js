@@ -1,5 +1,5 @@
 // BioBattle - an ECU ICTN6815 Group project
-// https://github.com/hopkeno/ECU-ICTN6815-Group2.git
+// https://github.com/hopkeno/biobattle.git
 
 var debug = {
 	level: "info",
