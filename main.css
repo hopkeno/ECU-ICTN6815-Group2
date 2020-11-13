@@ -1,6 +1,9 @@
 body {
     background: #081337;
 }
+h1 {
+    color: white;
+}
 canvas {
     cursor: crosshair;
     display: block;
