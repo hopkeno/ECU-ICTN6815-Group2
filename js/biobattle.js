@@ -242,29 +242,39 @@ addEventListener("contextmenu", function (e) {
 
 addEventListener("click", function (e) {
 	if (firstLoad) {
-		firstLoad = !firstLoad;
 		audioTitleReady = !audioTitleReady;
-		if (e.clientX >= 399) {
+		if (e.clientX >= 410 && e.clientX < 801 && e.clientY < 381) {
+			//selected theme 1 based on click position
 			theme = 1;
-		} else {
-			theme = 2;
+		} else if (e.clientX < 410 && e.clientY < 381) {
+			//selected theme 2 based on click position
+			// ensure they aren't trying to get to the "about" pages
+			if (e.clientX < 150 && e.clientY > 250) {
+				//looks like an "About" click
+				window.location = "about/about-us.html";
+			} else {
+				theme = 2;
+			}
 		};
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		canvas.width = 820;
-		canvas.height = 760;
-		bgImage.src = "images/background" + theme + ".png";
-		strikeImage.src = "images/strike" + theme + ".png";
-		sarsImage.src = "images/corona" + theme + ".png";
-		if (theme == 2) {
-			sars.count = 2;	// number of SARS launch locations
-			sars.XlaunchSites = [160,160];
-			sars.YlaunchSites = [165,330];
-			sars.XtargetSites = [575,570,572,580,595,610,640];
-			sars.YtargetSites = [115,175,236,270,322,360,415];		
-			jonas.x = 410;
-			jonas.y = 530;
-		}
-		reset();
+		if (theme) {
+			firstLoad = !firstLoad;
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			canvas.width = 820;
+			canvas.height = 760;
+			bgImage.src = "images/background" + theme + ".png";
+			strikeImage.src = "images/strike" + theme + ".png";
+			sarsImage.src = "images/corona" + theme + ".png";
+			if (theme == 2) {
+				sars.count = 2;	// number of SARS launch locations
+				sars.XlaunchSites = [160,160];
+				sars.YlaunchSites = [165,330];
+				sars.XtargetSites = [575,570,572,580,595,610,640];
+				sars.YtargetSites = [115,175,236,270,322,360,415];		
+				jonas.x = 410;
+				jonas.y = 530;
+			}
+			reset();
+		};
 	} else if (score.paused || score.gameover) {
 		return;
 	} else {
@@ -438,6 +448,15 @@ var render = function () {
 			ctx.font = "92px Impact";
 			ctx.textAlign = "left";
 			ctx.fillText("BioBattle", 235, 222);
+			// Theme selection Instructions
+			ctx.font = "16px Impact";
+			ctx.textAlign = "center";
+			ctx.fillText("Click on either image above", 610, 310);
+			ctx.fillText("to select a game theme" , 610, 325);
+			// Link to About-Us Documentation
+			ctx.fillText("Learn More", 80, 310);
+			ctx.fillText("About BioBattle", 80, 325);
+			ctx.font = "left";
 		}
 	} else if (strikeReady && strikeActive) {
 		ctx.drawImage(strikeImage, 0, 0);
