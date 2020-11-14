@@ -236,3 +236,8 @@ section.clients-home .clients-logos .client-logos-repeater img {
   background-size: cover;
   color: #fff;
 }
+
+a#titleLink:hover a#titleLink:focus a#titleLink:visited {
+    color: #337ab7;
+    text-decoration: none;
+}
