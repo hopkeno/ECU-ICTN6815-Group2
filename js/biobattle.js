@@ -251,7 +251,7 @@ addEventListener("click", function (e) {
 			// ensure they aren't trying to get to the "about" pages
 			if (e.clientX < 150 && e.clientY > 250) {
 				//looks like an "About" click
-				window.location = "about/about-us.html";
+				window.location = "http://about.biobattle.online";
 			} else {
 				theme = 2;
 			}
